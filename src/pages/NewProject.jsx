@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { PROJECT_TYPES, buildMilestonesForType } from '../utils/milestoneTemplates'
+import { PROJECT_TYPE_SUGGESTIONS, buildMilestonesForType } from '../utils/milestoneTemplates'
+import ComboInput from '../components/ui/ComboInput'
 
 export default function NewProject() {
   const { user } = useAuth()
@@ -12,7 +13,7 @@ export default function NewProject() {
 
   const [form, setForm] = useState({
     title: '',
-    project_type: prefill.projectType || 'basement',
+    project_type: prefill.projectType || 'Basement finish',
     description: prefill.description || '',
     budget: '',
     address: '',
@@ -92,16 +93,13 @@ export default function NewProject() {
 
         <div>
           <label className="label" htmlFor="project_type">Project type</label>
-          <select
+          <ComboInput
             id="project_type"
-            className="input"
             value={form.project_type}
             onChange={update('project_type')}
-          >
-            {PROJECT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+            options={PROJECT_TYPE_SUGGESTIONS}
+            placeholder="Pick a suggestion or type your own"
+          />
         </div>
 
         <div>

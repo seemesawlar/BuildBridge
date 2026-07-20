@@ -4,7 +4,6 @@ import { Plus, ArrowRight, FolderKanban } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import StatusBadge from '../components/ui/StatusBadge'
-import { PROJECT_TYPES } from '../utils/milestoneTemplates'
 
 export default function Dashboard() {
   const { user, profile } = useAuth()
@@ -24,8 +23,6 @@ export default function Dashboard() {
         setLoading(false)
       })
   }, [user, profile])
-
-  const typeLabel = (value) => PROJECT_TYPES.find((t) => t.value === value)?.label || value
 
   return (
     <div className="mx-auto max-w-5xl px-8 py-10">
@@ -70,7 +67,7 @@ export default function Dashboard() {
             className="card group flex flex-col gap-3 p-5 transition-shadow hover:shadow-sm"
           >
             <div className="flex items-start justify-between">
-              <p className="eyebrow">{typeLabel(project.project_type)}</p>
+              <p className="eyebrow">{project.project_type}</p>
               <StatusBadge status={project.status} />
             </div>
             <h3 className="font-display text-lg font-semibold text-blueprint">

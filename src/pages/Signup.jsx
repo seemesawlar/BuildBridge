@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { HardHat, Home, Wrench } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../context/AuthContext'
 
 export default function Signup() {
   const [role, setRole] = useState('client')
@@ -11,6 +12,7 @@ export default function Signup() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { refreshProfile } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,19 +26,37 @@ export default function Signup() {
       return
     }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        role,
-        email,
-        full_name: fullName,
-      })
-      if (profileError) {
-        setError(profileError.message)
-        setLoading(false)
-        return
-      }
+    if (!data.session) {
+      // Email confirmation is required on this project — signUp() still
+      // returns a `user` object in that case, but there's no active
+      // session yet, so any insert as this user would fail RLS (which
+      // is exactly what was happening before this check looked at the
+      // wrong field). There's nothing to redirect into until they
+      // confirm, so tell them that instead of attempting the insert.
+      setLoading(false)
+      setError('Check your email to confirm your account, then sign in.')
+      return
     }
+
+    const { error: profileError } = await supabase.from('profiles').insert({
+      id: data.user.id,
+      role,
+      email,
+      full_name: fullName,
+    })
+    if (profileError) {
+      setError(profileError.message)
+      setLoading(false)
+      return
+    }
+
+    // AuthContext also fetches the profile automatically as soon as it
+    // sees a session, but that fetch can fire before this insert above
+    // has committed — a race that leaves `profile` stuck at null
+    // forever, since that effect only runs once per session. Forcing
+    // a fresh fetch here, after we know the insert succeeded, closes
+    // that gap.
+    await refreshProfile(data.user.id)
 
     setLoading(false)
     navigate('/')

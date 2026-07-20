@@ -13,7 +13,6 @@ import MessagesPanel from '../components/project/MessagesPanel'
 import InviteContractor from '../components/project/InviteContractor'
 import ReviewForm from '../components/reviews/ReviewForm'
 import ReviewCard from '../components/reviews/ReviewCard'
-import { PROJECT_TYPES } from '../utils/milestoneTemplates'
 
 const TABS = ['Overview', 'Estimates', 'Change orders', 'Progress', 'Payments', 'Messages', 'Review']
 
@@ -95,7 +94,6 @@ export default function ProjectDetail() {
   }
 
   const isContractor = profile?.role === 'contractor'
-  const typeLabel = PROJECT_TYPES.find((t) => t.value === project.project_type)?.label
 
   const copyShareLink = () => {
     const url = `${window.location.origin}/share/${project.share_token}`
@@ -107,7 +105,7 @@ export default function ProjectDetail() {
   return (
     <div className="mx-auto max-w-5xl px-8 py-10">
       <div className="mb-2 flex items-center justify-between">
-        <p className="eyebrow">{typeLabel}</p>
+        <p className="eyebrow">{project.project_type}</p>
         <StatusBadge status={project.status} />
       </div>
       <h1 className="mb-1 font-display text-3xl font-semibold text-blueprint">{project.title}</h1>

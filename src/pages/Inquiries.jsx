@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { PROJECT_TYPES } from '../utils/milestoneTemplates'
 
 const STATUS_STYLE = {
   pending: 'bg-amber/15 text-amber-dark',
@@ -28,7 +27,7 @@ function ContractorInquiryCard({ inquiry, onChange }) {
     onChange()
   }
 
-  const typeLabel = PROJECT_TYPES.find((t) => t.value === inquiry.project_type)?.label
+  const typeLabel = inquiry.project_type
 
   return (
     <div className="card p-5">
@@ -91,7 +90,7 @@ function ContractorInquiryCard({ inquiry, onChange }) {
 
 function ClientInquiryCard({ inquiry, onChange }) {
   const navigate = useNavigate()
-  const typeLabel = PROJECT_TYPES.find((t) => t.value === inquiry.project_type)?.label
+  const typeLabel = inquiry.project_type
 
   const withdraw = async () => {
     await supabase.from('inquiries').update({ status: 'withdrawn' }).eq('id', inquiry.id)

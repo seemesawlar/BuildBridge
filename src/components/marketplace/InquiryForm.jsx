@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
-import { PROJECT_TYPES } from '../../utils/milestoneTemplates'
+import { PROJECT_TYPE_SUGGESTIONS } from '../../utils/milestoneTemplates'
+import ComboInput from '../ui/ComboInput'
 
 export default function InquiryForm({ contractorId, clientId, onClose, onSent }) {
-  const [projectType, setProjectType] = useState('basement')
+  const [projectType, setProjectType] = useState('Basement finish')
   const [message, setMessage] = useState('')
   const [budget, setBudget] = useState('')
   const [saving, setSaving] = useState(false)
@@ -48,12 +49,14 @@ export default function InquiryForm({ contractorId, clientId, onClose, onSent })
 
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="label">Project type</label>
-            <select className="input" value={projectType} onChange={(e) => setProjectType(e.target.value)}>
-              {PROJECT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+            <label className="label" htmlFor="inquiry_project_type">Project type</label>
+            <ComboInput
+              id="inquiry_project_type"
+              value={projectType}
+              onChange={(e) => setProjectType(e.target.value)}
+              options={PROJECT_TYPE_SUGGESTIONS}
+              placeholder="Pick a suggestion or type your own"
+            />
           </div>
           <div>
             <label className="label">Tell them about the job</label>

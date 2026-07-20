@@ -1,28 +1,74 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import AvatarUpload from '../components/profile/AvatarUpload'
 import LicenseUpload from '../components/profile/LicenseUpload'
 import PortfolioGallery from '../components/profile/PortfolioGallery'
 
+const emptyForm = {
+  full_name: '',
+  company_name: '',
+  phone: '',
+  service_area: '',
+  years_experience: '',
+  bio: '',
+  specialties: '',
+}
+
 export default function Profile() {
-  const { user, profile, refreshProfile } = useAuth()
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth()
   const isContractor = profile?.role === 'contractor'
 
-  const [form, setForm] = useState({
-    full_name: profile?.full_name || '',
-    company_name: profile?.company_name || '',
-    phone: profile?.phone || '',
-    service_area: profile?.service_area || '',
-    years_experience: profile?.years_experience || '',
-    bio: profile?.bio || '',
-    specialties: (profile?.specialties || []).join(', '),
-  })
+  const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  const hydrated = useRef(false)
+
+  // The profile can arrive after this component's first render (e.g.
+  // right after signup, or on any slow connection) — `useState`'s
+  // initializer only runs once, so without this the form would stay
+  // blank forever even once `profile` shows up. Sync it in once, the
+  // first time it becomes available.
+  useEffect(() => {
+    if (profile && !hydrated.current) {
+      hydrated.current = true
+      setForm({
+        full_name: profile.full_name || '',
+        company_name: profile.company_name || '',
+        phone: profile.phone || '',
+        service_area: profile.service_area || '',
+        years_experience: profile.years_experience || '',
+        bio: profile.bio || '',
+        specialties: (profile.specialties || []).join(', '),
+      })
+    }
+  }, [profile])
+
+  const handleRetry = async () => {
+    setRetrying(true)
+    await refreshProfile()
+    setRetrying(false)
+  }
+
+  if (authLoading) {
+    return <div className="px-8 py-10 font-mono text-sm text-slate">Loading…</div>
+  }
 
   if (!profile) {
-    return <div className="px-8 py-10 font-mono text-sm text-slate">Loading profile…</div>
+    return (
+      <div className="mx-auto max-w-md px-8 py-16 text-center">
+        <p className="mb-2 font-display text-lg font-semibold text-blueprint">
+          Couldn't load your profile
+        </p>
+        <p className="mb-5 text-sm text-slate">
+          This can happen right after signing up, or after a network hiccup. Try again below.
+        </p>
+        <button onClick={handleRetry} disabled={retrying} className="btn-primary">
+          {retrying ? 'Retrying…' : 'Retry'}
+        </button>
+      </div>
+    )
   }
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
